@@ -1,0 +1,4 @@
+金融咨询推荐系统的爬虫框架
+测试运行环境：python3 on MacOS / Windows
+依赖库参考 requirements.txt
+数据存储在 119 服务器的 MongoDB 中
