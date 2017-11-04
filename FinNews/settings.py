@@ -23,6 +23,7 @@ MONGO_COLLECTION_HEXUN = 'hexun'
 MONGO_COLLECTION_EAST_MONEY_STOCK_LIST = 'east_money_stock_list'
 MONGO_COLLECTION_EAST_MONEY_STOCK_MAP_USER = 'east_money_stock_map_user'
 MONGO_COLLECTION_EAST_MONEY_STOCK_USER_INFO = 'east_money_stock_user_info'
+MONGO_COLLECTION_CANDIDATE = 'candidate'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'myscrapy (+http://www.yourdomain.com)'

@@ -33,6 +33,10 @@ class MongoPipeline(object):
         self.east_money_stock_list.ensure_index('stock_id', unique=True)
         self.east_money_stock_map_user = self.db[self.settings['MONGO_COLLECTION_EAST_MONEY_STOCK_MAP_USER']]
         self.east_money_stock_user_info = self.db[self.settings['MONGO_COLLECTION_EAST_MONEY_STOCK_USER_INFO']]
+        # 新闻推荐的候选列表，只推荐较新的新闻
+        self.candidate = self.db[self.settings['MONGO_COLLECTION_CANDIDATE']]
+        self.candidate.ensure_index('url', unique=True)
+        self.candidate.delete_many({})
 
     def process_item(self, item, spider):
         if isinstance(item, WallStreetItem):
@@ -40,11 +44,19 @@ class MongoPipeline(object):
                 self.wallstreet.insert_one(dict(item))
             except Exception as e:
                 logger.warning('process_item.wallstreet: %s', str(item), exc_info=1)
+            try:
+                self.candidate.insert_one(dict(item))
+            except Exception as e:
+                logger.warning('process_item.candidate: %s', str(item), exc_info=1)
         elif isinstance(item, HexunItem):
             try:
                 self.hexun.insert_one(dict(item))
             except Exception as e:
                 logger.warning('process_item.hexun: %s', str(item), exc_info=1)
+            try:
+                self.candidate.insert_one(dict(item))
+            except Exception as e:
+                logger.warning('process_item.candidate: %s', str(item), exc_info=1)
         elif isinstance(item, EastMoneyStockIdNameItem):  # 东方财富 股票基金债券代码
             try:
                 if not self.east_money_stock_list.find_one({'stock_id': item['stock_id']}):
