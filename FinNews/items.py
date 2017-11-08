@@ -8,6 +8,13 @@
 import scrapy
 
 
+class UserItem(scrapy.Item):
+    user_name = scrapy.Field()
+    user_password = scrapy.Field()
+    recent_reads = scrapy.Field()
+    tags = scrapy.Field()
+    stocks = scrapy.Field()
+
 class WallStreetItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
