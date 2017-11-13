@@ -56,3 +56,41 @@ class EastMoneyStockUserInfoItem(scrapy.Item):
     intro = scrapy.Field()
     stock_id = scrapy.Field()
 
+# 各种公告
+class EastMoneyAnnounceItem(scrapy.Item):
+    url = scrapy.Field()
+    title = scrapy.Field()
+    type = scrapy.Field()
+    anno_time = scrapy.Field()
+    source_pdf_url = scrapy.Field()
+    content = scrapy.Field()
+
+
+# 各种新闻
+class EastMoneyArticleItem(scrapy.Item):
+    url = scrapy.Field()
+    cur_source = scrapy.Field()
+    title = scrapy.Field()
+    type = scrapy.Field()
+    pb_time = scrapy.Field()
+    source = scrapy.Field()
+    author = scrapy.Field()
+    editor = scrapy.Field()
+    comment_list = scrapy.Field()
+    para_content_text_and_images = scrapy.Field()
+
+
+# 个股研报 - 行业研报
+class EastMoneyResearchReportItem(scrapy.Item):
+    url = scrapy.Field()
+    research_report_type = scrapy.Field()
+    title = scrapy.Field()
+    pb_time = scrapy.Field()
+    ping_ji = scrapy.Field()
+    ji_gou = scrapy.Field()
+    author = scrapy.Field()
+    img_k_url = scrapy.Field()
+    img_k_alt = scrapy.Field()
+    two_img_url = scrapy.Field()
+    # img_price_tips = Field()
+    para_content_text_and_images = scrapy.Field()

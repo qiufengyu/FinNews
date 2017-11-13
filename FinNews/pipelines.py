@@ -9,7 +9,7 @@ import logging
 
 from datetime import datetime
 from scrapy.utils.project import get_project_settings
-from items import WallStreetItem, HexunItem, EastMoneyStockIdNameItem, EastMoneyStockMapUserItem, EastMoneyStockUserInfoItem
+from items import *
 
 
 logger = logging.getLogger(__name__)
@@ -33,6 +33,13 @@ class MongoPipeline(object):
         self.east_money_stock_list.ensure_index('stock_id', unique=True)
         self.east_money_stock_map_user = self.db[self.settings['MONGO_COLLECTION_EAST_MONEY_STOCK_MAP_USER']]
         self.east_money_stock_user_info = self.db[self.settings['MONGO_COLLECTION_EAST_MONEY_STOCK_USER_INFO']]
+        self.east_money_article = self.db[self.settings['MONGO_COLLECTION_EAST_MONEY_ARTICLE']]
+        self.east_money_article.ensure_index('url', unique=True)
+        self.east_money_anno = self.db[self.settings['MONGO_COLLECTION_EAST_MONEY_ANNO']]
+        self.east_money_anno.ensure_index('url', unique=True)
+        self.east_money_research_report = self.db[self.settings['MONGO_COLLECTION_EAST_MONEY_RESEARCH_REPORT']]
+        self.east_money_research_report.ensure_index('url', unique=True)
+
         # 新闻推荐的候选列表，只推荐较新的新闻
         self.candidate = self.db[self.settings['MONGO_COLLECTION_CANDIDATE']]
         self.candidate.ensure_index('url', unique=True)
@@ -57,6 +64,24 @@ class MongoPipeline(object):
                 self.candidate.insert_one(dict(item))
             except Exception as e:
                 logger.warning('process_item.candidate: %s', str(item), exc_info=1)
+        elif isinstance(item, EastMoneyArticleItem):  # 东方财富， 各种新闻页面
+            try:
+                self.east_money_article.insert(dict(item))
+            except Exception as e:
+                logger.warning('process_item.EastMoneyBondNewsItem: %s', str(item), exc_info=1)
+
+        elif isinstance(item, EastMoneyAnnounceItem):  # 东方财富，公告
+            try:
+                self.east_money_anno.insert(dict(item))
+            except Exception as e:
+                logger.warning('process_item.EastMoneyBondAnnounce: %s', str(item), exc_info=1)
+
+        elif isinstance(item, EastMoneyResearchReportItem):  # 东方财富，研报
+            try:
+                self.east_money_research_report.insert(dict(item))
+            except Exception as e:
+                logger.warning('process_item.EastMoneyResearchReport: %s', str(item), exc_info=1)
+
         elif isinstance(item, EastMoneyStockIdNameItem):  # 东方财富 股票基金债券代码
             try:
                 if not self.east_money_stock_list.find_one({'stock_id': item['stock_id']}):
