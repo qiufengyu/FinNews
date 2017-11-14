@@ -10,8 +10,6 @@ def remove_multi_space(text):
 def remove_newline_character(text):
     return re.sub(r"\n", " ", text)
 
-
-
 def get_code2name():
     dat = [line.strip().split(':') for line in open('./code2name.dat', 'r', encoding="utf-8").readlines()]
     res = {}

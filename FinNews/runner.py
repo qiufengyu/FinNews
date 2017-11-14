@@ -8,8 +8,6 @@ from spiders.hexun import HexunSpider
 from spiders.eastmoney import EastMoneySpider
 
 
-
-
 if __name__ == '__main__':
     settings = get_project_settings()
     process = CrawlerProcess(get_project_settings())
