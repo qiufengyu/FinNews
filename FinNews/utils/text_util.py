@@ -6,6 +6,8 @@ def remove_multi_space(text):
     text = re.sub(r"\xa0", " ", text)
     return re.sub(r"\s{2,}", " ", text)
 
+def remove_html_space(text):
+    return re.sub('\xa0', "", text)
 
 def remove_newline_character(text):
     return re.sub(r"\n", " ", text)

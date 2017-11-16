@@ -20,6 +20,7 @@ MONGO_PORT = 27017  # 端口号
 MONGO_DBNAME = 'fin_news'
 MONGO_COLLECTION_WALLSTREET = 'wallstreet'
 MONGO_COLLECTION_HEXUN = 'hexun'
+MONGO_COLLECTION_SINA_ROLL = 'sina_roll'
 MONGO_COLLECTION_EAST_MONEY_STOCK_LIST = 'east_money_stock_list'
 MONGO_COLLECTION_EAST_MONEY_STOCK_MAP_USER = 'east_money_stock_map_user'
 MONGO_COLLECTION_EAST_MONEY_STOCK_USER_INFO = 'east_money_stock_user_info'
@@ -30,6 +31,9 @@ MONGO_COLLECTION_CANDIDATE = 'candidate'
 
 # Sinajs to get real-time stocks
 SINA_JS_STOCK_REQUEST = 'http://hq.sinajs.cn/list='
+
+# Sina roll finance news
+SINA_ROLL_FINANCE_NEWS = 'http://roll.news.sina.com.cn/interface/rollnews_ch_out_interface.php?col=43&spec=&type=&ch=03&k=&offset_page=0&offset_num=0&num=200&asc=&page=1'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'myscrapy (+http://www.yourdomain.com)'

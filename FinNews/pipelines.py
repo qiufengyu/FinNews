@@ -29,6 +29,8 @@ class MongoPipeline(object):
         self.wallstreet.ensure_index('url', unique=True)
         self.hexun = self.db[self.settings['MONGO_COLLECTION_HEXUN']]
         self.hexun.ensure_index('url', unique=True)
+        self.sina_roll = self.db[self.settings['MONGO_COLLECTION_SINA_ROLL']]
+        self.sina_roll.ensure_index('url', unique=True)
         self.east_money_stock_list = self.db[self.settings['MONGO_COLLECTION_EAST_MONEY_STOCK_LIST']]
         self.east_money_stock_list.ensure_index('stock_id', unique=True)
         self.east_money_stock_map_user = self.db[self.settings['MONGO_COLLECTION_EAST_MONEY_STOCK_MAP_USER']]
@@ -51,6 +53,15 @@ class MongoPipeline(object):
                 self.wallstreet.insert_one(dict(item))
             except Exception as e:
                 logger.warning('process_item.wallstreet: %s', str(item), exc_info=1)
+            try:
+                self.candidate.insert_one(dict(item))
+            except Exception as e:
+                logger.warning('process_item.candidate: %s', str(item), exc_info=1)
+        elif isinstance(item, SinaRollItem):
+            try:
+                self.sina_roll.insert_one(dict(item))
+            except Exception as e:
+                logger.warning('process_item.sina_roll: %s', str(item), exc_info=1)
             try:
                 self.candidate.insert_one(dict(item))
             except Exception as e:

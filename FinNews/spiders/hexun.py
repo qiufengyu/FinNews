@@ -31,7 +31,6 @@ class HexunSpider(scrapy.Spider):
     def parse(self, response):
         return eval(HexunSpider.url_map_parse[get_base_url(response)])(response)
 
-
     # http://news.hexun.com  和讯新闻
     def parse_news_hexun_com(self, response):
         soup = BeautifulSoup(response.body, "html5lib")
