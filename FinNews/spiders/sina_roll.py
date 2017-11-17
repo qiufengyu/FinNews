@@ -60,7 +60,7 @@ class SinaRollSpider(scrapy.Spider):
       cursors = soup.find('div', 'bread').text.strip()
       # print(cursors)
       # Scrapy 默认不会爬取重复 url 的内容，这里我们再爬取一次，设置 dont_filter=True
-      # 直接把函数搬过来，但是我觉得结构、逻辑上就不美观了
+      # 直接把函数搬过来，但是我觉得结构、逻辑上就不美观了，且影响效率
       """
       if '证券' in cursors:
         print('证券', response.url)
@@ -69,22 +69,41 @@ class SinaRollSpider(scrapy.Spider):
         }, dont_filter=True)
       """
       # 为了提高爬虫效率，使用如下的代码
-
-      if '证券' in cursors:
-        # print('证券', response.url)
-        meta_info['category'] = '证券'
-      elif '港股' in cursors:
-        meta_info['category'] = '港股'
-      elif '国内财经' in cursors:
-        meta_info['category'] = '国内财经'
-      elif '国际财经' in cursors:
-        meta_info['category'] = '国际财经'
-      elif '期货' in cursors:
-        meta_info['category'] = '期货'
-      elif '产经' in cursors:
-        meta_info['category'] = '产经'
-      else:
-        pass
+      category = cursors.split(' ')[0]
+      meta_info['category'] = category
+      # if '证券' in cursors:
+      #   # print('证券', response.url)
+      #   meta_info['category'] = '证券'
+      # elif '港股' in cursors:
+      #   meta_info['category'] = '港股'
+      # elif '国内财经' in cursors:
+      #   meta_info['category'] = '国内财经'
+      # elif '国际财经' in cursors:
+      #   meta_info['category'] = '国际财经'
+      # elif '期货' in cursors:
+      #   meta_info['category'] = '期货'
+      # elif '产经' in cursors:
+      #   meta_info['category'] = '产经'
+      # elif '基金' in cursors:
+      #   meta_info['category'] = '基金'
+      # elif '外汇' in cursors:
+      #   meta_info['category'] = '外汇'
+      # elif '新股' in cursors:
+      #   meta_info['category'] = '新股'
+      # elif '债券' in cursors:
+      #   meta_info['category'] = '债券'
+      # elif '理财' in cursors:
+      #   meta_info['category'] = '理财'
+      # elif '银行' in cursors:
+      #   meta_info['category'] = '银行'
+      # elif '保险' in cursors:
+      #   meta_info['category'] = '保险'
+      # elif '贵金属' in cursors:
+      #   meta_info['category'] = '贵金属'
+      # elif '信托' in cursors:
+      #   meta_info['category'] = '信托'
+      # else:
+      #   meta_info['category'] = '其他'
       yield self.parse_common_contents(soup, meta_info=meta_info)
     elif soup.find('p', 'fl'):
       if '美股' in soup.find('p', 'fl').text:
@@ -150,7 +169,10 @@ class SinaRollSpider(scrapy.Spider):
       source = soup.find('div', {'id': 'media_name'}).text.strip()
     elif soup.find('span', {'id': 'media_name'}):
       source = soup.find('span', {'id': 'media_name'}).text.strip()
-    source = source[:source.index('\xa0')]
+    if source.find('\xa0') > 0:
+      source = source[:source.find('\xa0')]
+    elif source.find(' ') > 0:
+      source = source[:source.find(' ')]
     item['source'] = source
     content = soup.find('div', {'id': 'artibody'})
     para_content_text_and_images = []
