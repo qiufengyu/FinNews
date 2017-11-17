@@ -7,7 +7,7 @@
 import pymongo
 import logging
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from scrapy.utils.project import get_project_settings
 from items import *
 
@@ -45,7 +45,8 @@ class MongoPipeline(object):
         # 新闻推荐的候选列表，只推荐较新的新闻
         self.candidate = self.db[self.settings['MONGO_COLLECTION_CANDIDATE']]
         self.candidate.ensure_index('url', unique=True)
-        self.candidate.delete_many({})
+        self.maintain_candidate()
+        # self.candidate.delete_many({})
 
     def process_item(self, item, spider):
         if isinstance(item, WallStreetItem):
@@ -54,7 +55,9 @@ class MongoPipeline(object):
             except Exception as e:
                 logger.warning('process_item.wallstreet: %s', str(item), exc_info=1)
             try:
-                self.candidate.insert_one(dict(item))
+                candidate_item = dict(item)
+                candidate_item['db_time'] = datetime.utcnow()
+                self.candidate.insert_one(candidate_item)
             except Exception as e:
                 logger.warning('process_item.candidate: %s', str(item), exc_info=1)
         elif isinstance(item, SinaRollItem):
@@ -63,7 +66,9 @@ class MongoPipeline(object):
             except Exception as e:
                 logger.warning('process_item.sina_roll: %s', str(item), exc_info=1)
             try:
-                self.candidate.insert_one(dict(item))
+                candidate_item = dict(item)
+                candidate_item['db_time'] = datetime.utcnow()
+                self.candidate.insert_one(candidate_item)
             except Exception as e:
                 logger.warning('process_item.candidate: %s', str(item), exc_info=1)
         elif isinstance(item, HexunItem):
@@ -72,7 +77,9 @@ class MongoPipeline(object):
             except Exception as e:
                 logger.warning('process_item.hexun: %s', str(item), exc_info=1)
             try:
-                self.candidate.insert_one(dict(item))
+                candidate_item = dict(item)
+                candidate_item['db_time'] = datetime.utcnow()
+                self.candidate.insert_one(candidate_item)
             except Exception as e:
                 logger.warning('process_item.candidate: %s', str(item), exc_info=1)
         elif isinstance(item, EastMoneyArticleItem):  # 东方财富， 各种新闻页面
@@ -127,3 +134,14 @@ class MongoPipeline(object):
             logger.warning("No pipe line item handler !")
             raise NotImplementedError
         return item
+
+    def maintain_candidate(self):
+        two_days_before = datetime.utcnow() - timedelta(2)
+        result = self.candidate.delete_many({'db_time': {'$lt': two_days_before}})
+        # 这个 deleted_count 好像总是为 0 ...
+        print(result.deleted_count, "document(s) deleted from candidate database")
+
+
+
+
+

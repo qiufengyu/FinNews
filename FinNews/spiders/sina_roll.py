@@ -105,8 +105,11 @@ class SinaRollSpider(scrapy.Spider):
     source = source.split(' ')[1]
     item['source'] = source
     para_content_text_and_images = []
-    author = soup.find('p', 'article-editor').text.strip()
-    author = author[author.index('：') + 1:]
+    if soup.find('p', 'article-editor'):
+      author = soup.find('p', 'article-editor').text.strip()
+      author = author[author.index('：') + 1:]
+    else:
+      author = None
     item['author'] = author
     title = soup.find('div', 'page-header')
     if title:
@@ -168,8 +171,10 @@ class SinaRollSpider(scrapy.Spider):
           # print(para_content)
           if len(para_content) > 0:
             para_content_text_and_images.append(para_content)
-      author = content.find('p', 'article-editor').text.strip()
-      author = author[author.index('：') + 1:]
-    item['author'] = author
+      author = None
+      if content.find('p', 'article-editor'):
+        author = content.find('p', 'article-editor').text.strip()
+        author = author[author.index('：') + 1:]
+      item['author'] = author
     item['para_content_text_and_images'] = para_content_text_and_images
     return item
