@@ -30,6 +30,8 @@ class MongoPipeline(object):
     self.hexun.ensure_index('url', unique=True)
     self.sina_roll = self.db[self.settings['MONGO_COLLECTION_SINA_ROLL']]
     self.sina_roll.ensure_index('url', unique=True)
+    self.tencent = self.db[self.settings['MONGO_COLLECTION_TENCENT']]
+    self.tencent.ensure_index('url', unique=True)
     self.east_money_stock_list = self.db[self.settings['MONGO_COLLECTION_EAST_MONEY_STOCK_LIST']]
     self.east_money_stock_list.ensure_index('stock_id', unique=True)
     self.east_money_stock_map_user = self.db[self.settings['MONGO_COLLECTION_EAST_MONEY_STOCK_MAP_USER']]

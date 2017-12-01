@@ -82,6 +82,9 @@ class TencentSpider(scrapy.Spider):
     para_content_text_and_images = []
     self.driver.get(response.url)
     time.sleep(3)
+    # 强制刷新
+    self.driver.refresh()
+    time.sleep(2)
     source = self.driver.page_source
     soup = BeautifulSoup(source, 'lxml')
     # 版式一

@@ -12,10 +12,10 @@ from spiders.tencent import TencentSpider
 if __name__ == '__main__':
   settings = get_project_settings()
   process = CrawlerProcess(get_project_settings())
-  process.crawl(WallStreetSpider)
+  # process.crawl(WallStreetSpider)
   # process.crawl(HexunSpider)
   # process.crawl(EastMoneySpider)
-  process.crawl(SinaRollSpider)
-  # process.crawl(TencentSpider)
+  # process.crawl(SinaRollSpider)
+  process.crawl(TencentSpider)
 
   process.start()
