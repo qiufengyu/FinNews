@@ -7,13 +7,15 @@ from spiders.wallstreet import WallStreetSpider
 from spiders.hexun import HexunSpider
 from spiders.eastmoney import EastMoneySpider
 from spiders.sina_roll import SinaRollSpider
-
+from spiders.tencent import TencentSpider
 
 if __name__ == '__main__':
-    settings = get_project_settings()
-    process = CrawlerProcess(get_project_settings())
-    process.crawl(WallStreetSpider)
-    # process.crawl(HexunSpider)
-    # process.crawl(EastMoneySpider)
-    process.crawl(SinaRollSpider)
-    process.start()
+  settings = get_project_settings()
+  process = CrawlerProcess(get_project_settings())
+  process.crawl(WallStreetSpider)
+  # process.crawl(HexunSpider)
+  # process.crawl(EastMoneySpider)
+  process.crawl(SinaRollSpider)
+  # process.crawl(TencentSpider)
+
+  process.start()

@@ -10,6 +10,8 @@
 
 依赖库参考 requirements.txt
 
+对于 MacOS 需要通过 `brew install chromedriver` 安装必要驱动，Windows 需要制定 chromedriver 路径
+
 数据存储在 119 服务器的 MongoDB 中
 
 ### 爬取新闻来源
@@ -18,7 +20,7 @@
 * 东方财经网（股票信息）
 * 华尔街见闻
 * 新浪滚动财经新闻
-* to be added
+* 腾讯滚动财经新闻（需要 selenium）
 
 ### 版权信息
 
