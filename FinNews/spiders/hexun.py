@@ -185,6 +185,7 @@ class HexunSpider(scrapy.Spider):
 
         # start ----------------- item construct
         article_item = HexunItem()
+        article_item['reads'] = 0
         article_item['url'] = url
         article_item['cur_source'] = cur_source
         article_item['title'] = title

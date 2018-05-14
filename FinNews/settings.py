@@ -34,8 +34,8 @@ MONGO_COLLECTION_CANDIDATE = 'candidate'
 SINA_JS_STOCK_REQUEST = 'http://hq.sinajs.cn/list='
 
 # Sina roll finance news
-SINA_ROLL_FINANCE_NEWS = 'http://roll.news.sina.com.cn/interface/rollnews_ch_out_interface.php?col=43&spec=&type=&ch=03&k=&offset_page=0&offset_num=0&num=200&asc=&page=1'
-
+SINA_ROLL_FINANCE_NEWS = 'http://roll.news.sina.com.cn/interface/rollnews_ch_out_interface.php?col=43&spec=&type=&ch=03&k=&offset_page=0&offset_num=0&num=200&asc=&page={}'
+SINA_ROLL_PAGES = 5
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'myscrapy (+http://www.yourdomain.com)'
 
@@ -48,7 +48,7 @@ ROBOTSTXT_OBEY = True
 # Configure a delay for requests for the same website (default: 0)
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-#DOWNLOAD_DELAY = 3
+DOWNLOAD_DELAY = 2.0
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16

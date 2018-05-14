@@ -9,9 +9,11 @@ import scrapy
 
 
 class UserItem(scrapy.Item):
-    user_name = scrapy.Field()
-    user_password = scrapy.Field()
-    recent_reads = scrapy.Field()
+    username = scrapy.Field()
+    password = scrapy.Field()
+    email = scrapy.Field()
+    recent_reads_url = scrapy.Field()
+    recent_reads_title = scrapy.Field()
     tags = scrapy.Field()
     stocks = scrapy.Field()
 
@@ -23,6 +25,7 @@ class WallStreetItem(scrapy.Item):
     source = scrapy.Field()
     url = scrapy.Field()
     pb_time = scrapy.Field()
+    reads = scrapy.Field()
     # author 在这里不明确，source 指向即可
     para_content_text_and_images = scrapy.Field()
 
@@ -33,6 +36,7 @@ class HexunItem(scrapy.Item):
     pb_time = scrapy.Field()
     source = scrapy.Field()
     author = scrapy.Field()
+    reads = scrapy.Field()
     para_content_text_and_images = scrapy.Field()
 
 class SinaRollItem(scrapy.Item):
@@ -41,6 +45,7 @@ class SinaRollItem(scrapy.Item):
     pb_time = scrapy.Field()
     source = scrapy.Field()
     author = scrapy.Field()
+    reads = scrapy.Field()
     para_content_text_and_images = scrapy.Field()
     category = scrapy.Field()
 
@@ -50,6 +55,7 @@ class TencentItem(scrapy.Item):
     pb_time = scrapy.Field()
     source = scrapy.Field()
     author = scrapy.Field()
+    reads = scrapy.Field()
     para_content_text_and_images = scrapy.Field()
     category = scrapy.Field()
 
@@ -94,6 +100,7 @@ class EastMoneyArticleItem(scrapy.Item):
     author = scrapy.Field()
     editor = scrapy.Field()
     comment_list = scrapy.Field()
+    reads = scrapy.Field()
     para_content_text_and_images = scrapy.Field()
 
 
@@ -106,6 +113,7 @@ class EastMoneyResearchReportItem(scrapy.Item):
     ping_ji = scrapy.Field()
     ji_gou = scrapy.Field()
     author = scrapy.Field()
+    reads = scrapy.Field()
     img_k_url = scrapy.Field()
     img_k_alt = scrapy.Field()
     two_img_url = scrapy.Field()

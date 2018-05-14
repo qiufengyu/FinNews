@@ -24,104 +24,57 @@ class Dummy(dict):
 
 
 class SinaRollSpider(scrapy.Spider):
+  settings = get_project_settings()
   name = 'sina_roll'
   allowed_domains = ['sina.com.cn']
   # dummy
   start_urls = ['http://roll.finance.sina.com.cn/s/channel.php']
+  pages = settings['SINA_ROLL_PAGES']
 
   def parse(self, response):
-    settings = get_project_settings()
-    req = urllib.request.Request(url=settings['SINA_ROLL_FINANCE_NEWS'])
-    response = urllib.request.urlopen(req, timeout=5)
-    response_read = response.read().decode('gbk')
-    data_str = response_read.split('=')[1][:-1]
-    """
-    解析非标准 JSON 的 Javascript 字符串
-    """
-    data_str = eval(data_str, Dummy())
-    data_str = json.dumps(data_str)
-    data_str = json.loads(data_str)
-    data_str = data_str['list']
-    for r in data_str:
-      rt = datetime.datetime.fromtimestamp(r['time'])
-      rtstr = datetime.datetime.strftime(rt, "%Y-%m-%d %H:%M")
-      yield scrapy.Request(r['url'], callback=self.parse_category, meta={
-        'title': r['title'], 'pb_time': rtstr
-      })
+    for i in range(1, self.pages+1):
+      req = urllib.request.Request(url=self.settings['SINA_ROLL_FINANCE_NEWS'].format(i))
+      response = urllib.request.urlopen(req, timeout=5)
+      response_read = response.read().decode('gbk')
+      data_str = response_read.split('=')[1][:-1]
+      """
+      解析非标准 JSON 的 Javascript 字符串
+      """
+      data_str = eval(data_str, Dummy())
+      data_str = json.dumps(data_str)
+      data_str = json.loads(data_str)
+      data_str = data_str['list']
+      for r in data_str:
+        rt = datetime.datetime.fromtimestamp(r['time'])
+        rtstr = datetime.datetime.strftime(rt, "%Y-%m-%d %H:%M")
+        yield scrapy.Request(r['url'], callback=self.parse_common_contents, meta={
+          'title': r['title'], 'pb_time': rtstr
+        })
       # print(r['title'], rtstr)
       # print(r['url'])
 
-  def parse_category(self, response):
-    soup = BeautifulSoup(response.body, 'html5lib')
-    meta_info = {'url': response.url,
-                 'title': response.meta['title'], 'pb_time': response.meta['pb_time'],
-                }
-    if soup.find('div', 'bread'):
-      cursors = soup.find('div', 'bread').text.strip()
-      # print(cursors)
-      # Scrapy 默认不会爬取重复 url 的内容，这里我们再爬取一次，设置 dont_filter=True
-      # 直接把函数搬过来，但是我觉得结构、逻辑上就不美观了，且影响效率
-      """
-      if '证券' in cursors:
-        print('证券', response.url)
-        yield scrapy.Request(response.url, callback=self.parse_common_contents, meta={
-          'title': response.meta['title'], 'pb_time': response.meta['pb_time'], 'category': '证券'
-        }, dont_filter=True)
-      """
-      # 为了提高爬虫效率，使用如下的代码
-      category = cursors.split(' ')[0]
-      meta_info['category'] = category
-      # if '证券' in cursors:
-      #   # print('证券', response.url)
-      #   meta_info['category'] = '证券'
-      # elif '港股' in cursors:
-      #   meta_info['category'] = '港股'
-      # elif '国内财经' in cursors:
-      #   meta_info['category'] = '国内财经'
-      # elif '国际财经' in cursors:
-      #   meta_info['category'] = '国际财经'
-      # elif '期货' in cursors:
-      #   meta_info['category'] = '期货'
-      # elif '产经' in cursors:
-      #   meta_info['category'] = '产经'
-      # elif '基金' in cursors:
-      #   meta_info['category'] = '基金'
-      # elif '外汇' in cursors:
-      #   meta_info['category'] = '外汇'
-      # elif '新股' in cursors:
-      #   meta_info['category'] = '新股'
-      # elif '债券' in cursors:
-      #   meta_info['category'] = '债券'
-      # elif '理财' in cursors:
-      #   meta_info['category'] = '理财'
-      # elif '银行' in cursors:
-      #   meta_info['category'] = '银行'
-      # elif '保险' in cursors:
-      #   meta_info['category'] = '保险'
-      # elif '贵金属' in cursors:
-      #   meta_info['category'] = '贵金属'
-      # elif '信托' in cursors:
-      #   meta_info['category'] = '信托'
-      # else:
-      #   meta_info['category'] = '其他'
-      yield self.parse_common_contents(soup, meta_info=meta_info)
-    elif soup.find('p', 'fl'):
-      if '美股' in soup.find('p', 'fl').text:
-        meta_info['category'] = '美股'
-        yield self.parse_usstock_contents(soup, meta_info=meta_info)
 
-  def parse_common_contents(self, soup, meta_info):
+  def parse_common_contents(self, response):
+    soup = BeautifulSoup(response.body, 'lxml')
     # print(response.url)
     item = SinaRollItem()
-    item['url'] = meta_info['url']
-    item['category'] = meta_info['category']
-    item['pb_time'] = meta_info['pb_time']
-    page_info = soup.find('div', 'page-info')
+    item['reads'] = 0
+    item['url'] = response.url
+    item['pb_time'] = response.meta['pb_time']
+
+    if soup.find('div', 'channel-path'):
+      cursors = soup.find('div', 'channel-path')
+      category = cursors.find('a').text.strip()
+    item['category'] = category if category else None
+
+    page_info = soup.find('div', 'date-source')
     source = None
-    if page_info:
-      source = page_info.find('span').text
-      source = remove_multi_space(source).strip()
-    source = source.split(' ')[1]
+    if page_info and page_info.find('a', 'source'):
+      source = page_info.find('a', 'source').text
+      source = source.strip()
+    elif page_info and page_info.find('span', 'source'):
+      source = page_info.find('span', 'source').text
+      source = source.strip()
     item['source'] = source
     para_content_text_and_images = []
     if soup.find('p', 'article-editor'):
@@ -130,11 +83,11 @@ class SinaRollSpider(scrapy.Spider):
     else:
       author = None
     item['author'] = author
-    title = soup.find('div', 'page-header')
+    title = soup.find('div', 'main-title')
     if title:
       title_text = remove_multi_space(title.text).strip()
     else:
-      title_text = meta_info['title']
+      title_text = response.meta['title']
     item['title'] = title_text
     # 正文
     artibody = soup.find('div', {'id': 'artibody'})
@@ -156,47 +109,5 @@ class SinaRollSpider(scrapy.Spider):
             if len(para_text) > 0:
               para_content_text_and_images.append(para_text)
     item['para_content_text_and_images'] = para_content_text_and_images
+    yield item
 
-    return item
-
-  def parse_usstock_contents(self, soup, meta_info):
-    item = SinaRollItem()
-    item['url'] = meta_info['url']
-    item['title'] = meta_info['title']
-    item['category'] = meta_info['category']
-    item['pb_time'] = meta_info['pb_time']
-    if soup.find('div', {'id': 'media_name'}):
-      source = soup.find('div', {'id': 'media_name'}).text.strip()
-    elif soup.find('span', {'id': 'media_name'}):
-      source = soup.find('span', {'id': 'media_name'}).text.strip()
-    if source.find('\xa0') > 0:
-      source = source[:source.find('\xa0')]
-    elif source.find(' ') > 0:
-      source = source[:source.find(' ')]
-    item['source'] = source
-    content = soup.find('div', {'id': 'artibody'})
-    para_content_text_and_images = []
-    if content:
-      paras = content.find_all(re.compile('^[pd]'))
-      for para in list(paras):
-        if para.find('img'):
-          img_src = para.find('img')['src'].strip()
-          if ('icon01' not in img_src) and ('usstocks' not in img_src):
-            para_content_text_and_images.append(para.find('img')['src'].strip())
-            descr = para.find('span', 'img_descr')
-            if descr:
-              descr_text = descr.text.strip()
-              if len(descr_text) > 0:
-                para_content_text_and_images.append(descr_text)
-        else:
-          para_content = remove_multi_space(remove_html_space(para.text).strip())
-          # print(para_content)
-          if len(para_content) > 0:
-            para_content_text_and_images.append(para_content)
-      author = None
-      if content.find('p', 'article-editor'):
-        author = content.find('p', 'article-editor').text.strip()
-        author = author[author.index('：') + 1:]
-      item['author'] = author
-    item['para_content_text_and_images'] = para_content_text_and_images
-    return item

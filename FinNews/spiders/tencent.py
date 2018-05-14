@@ -27,15 +27,16 @@ class TencentSpider(scrapy.Spider):
     else:
       print("Not supported platform")
       exit(-1)
-    self.driver.set_page_load_timeout(30)
+    self.driver.set_page_load_timeout(1000)
 
   def parse(self, response):
     self.config_driver()
     self.driver.get(response.url)
+    self.driver.maximize_window()
     time.sleep(5)  # Let the user actually see something!
     pages = 1
-    while (pages <= 1):
-      time.sleep(20)  # Let the user actually see something!
+    while (pages <= 3):
+      time.sleep(10)  # Let the user actually see something!
       source = self.driver.page_source
 
       soup = BeautifulSoup(source, 'lxml')
@@ -70,7 +71,8 @@ class TencentSpider(scrapy.Spider):
   目前的处理方式不是很优雅
   """
 
-  def parse_dir_contents(self, response):
+  def parse_dir_contents_selenium(self, response):
+    print("##$sselenium", response.url)
     item = TencentItem()
     title = response.meta['title']
     url = response.url
@@ -81,10 +83,11 @@ class TencentSpider(scrapy.Spider):
     ly = None
     para_content_text_and_images = []
     self.driver.get(response.url)
-    time.sleep(3)
+    time.sleep(10)
     # 强制刷新
+    self.driver.maximize_window()
     self.driver.refresh()
-    time.sleep(2)
+    time.sleep(10)
     source = self.driver.page_source
     soup = BeautifulSoup(source, 'lxml')
     # 版式一
@@ -172,7 +175,7 @@ class TencentSpider(scrapy.Spider):
             para_content_text_and_images.extend(contents.find('div', 'Cnt-Main-Article-QQ')
                                                 .text.strip().split('\n'))
     else:
-      print("=" * 20, " >>> Redirecting or with other news format... <<< ", "=" * 20)
+      print("=" * 20, " >>> Redirecting (selenium) or with other news format... <<< ", "=" * 20)
       yield None
 
     item['url'] = url
@@ -182,6 +185,100 @@ class TencentSpider(scrapy.Spider):
     item['category'] = category
     item['para_content_text_and_images'] = para_content_text_and_images
     item['author'] = author
+    item['reads'] = 0
+
+    yield item
+
+  def parse_dir_contents(self, response):
+    item = TencentItem()
+    title = response.meta['title']
+    url = response.url
+    category = response.meta['category']
+    # extract here
+    author = None
+    pb_time = None
+    ly = None
+    para_content_text_and_images = []
+    soup = BeautifulSoup(response.body, 'lxml')
+    # 版式一
+    # http://new.qq.com/cmsn/20171130021626 source time
+    if soup.find('div', 'LEFT'):
+      main_content = soup.find('div', 'LEFT')
+      if main_content.find('h1'):
+        title = main_content.find('h1').text.strip()
+      if soup.find(attrs={'name': '_pbtime'}):
+        pb_time = soup.find(attrs={'name': '_pbtime'})['content'].strip()
+      if soup.find('div', 'LeftTool'):
+        ly_flag = soup.find('div', 'LeftTool').find('span', {'data-bosszone': 'ly'})
+        if ly_flag:
+          ly = ly_flag.text.strip()
+      # 似乎是为了兼容显示器的尺寸
+      src_time = soup.find('div', 'a-src-time')
+      if src_time:
+        ss = src_time.find('a').text.strip()
+        ss_split = ss.split()
+        if len(ss_split) >= 2:
+          ly = ss_split[0].strip()
+          pb_time = "{} {}".format(ss_split[-2], ss_split[-1])
+      contents = soup.find('div', 'content-article')
+      if contents:
+        paras = contents.find_all('p')
+        for para in paras:
+          if para.find('img'):
+            para_content_text_and_images.append(para.find('img')['src'].strip())
+          else:
+            p_text = para.text.strip()
+            if len(p_text) > 0:
+              para_content_text_and_images.append(p_text)
+    # Gallery 形式
+    elif soup.find('div', 'gallery'):
+      yield self.parse_dir_contents_selenium(response)
+    # 版式二
+    elif soup.find('div', 'qq_article'):
+      main_content = soup.find('div', 'qq_article')
+      if main_content.find('div', 'hd'):
+        title = main_content.find('div', 'hd').find('h1').text.strip()
+      if main_content.find('div', 'a_Info'):
+        a_info = main_content.find('div', 'a_Info')
+        if a_info.find('span', 'a_source'):
+          ly = a_info.find('span', 'a_source').text.strip()
+        if a_info.find('span', 'a_time'):
+          pb_time = a_info.find('span', 'a_time').text.strip()
+        if a_info.find('span', 'a_author'):
+          author = a_info.find('span', 'a_author').text.strip()
+        if a_info.find('span', 'a_catelog'):
+          category = a_info.find('span', 'a_catelog').text.strip()
+      contents = main_content.find('div', 'bd')
+      if contents:
+        paras = contents.find_all('p')
+        for para in paras:
+          if para.find('img'):
+            para_content_text_and_images.append(para.find('img')['src'].strip())
+          else:
+            p_text = para.text.strip()
+            if len(p_text) > 0:
+              para_content_text_and_images.append(p_text)
+        if len(paras) == 0:
+          if contents.find('div', 'Cnt-Main-Article-QQ'):
+            brs = contents.find('div', 'Cnt-Main-Article-QQ')
+            for br in brs.find_all('br'):
+              br.replace_with('\n')
+            para_content_text_and_images.extend(contents.find('div', 'Cnt-Main-Article-QQ')
+                                                .text.strip().split('\n'))
+    elif len(para_content_text_and_images) == 0:
+      print("=" * 20, " >>> Empty contents. Try again... <<< ", "=" * 20)
+      yield self.parse_dir_contents_selenium(response)
+    else:
+      print("=" * 20, " >>> Redirecting or with other news format... <<< ", "=" * 20)
+      yield self.parse_dir_contents_selenium(response)
+    item['url'] = url
+    item['title'] = title
+    item['pb_time'] = pb_time
+    item['source'] = ly
+    item['category'] = category
+    item['para_content_text_and_images'] = para_content_text_and_images
+    item['author'] = author
+    item['reads'] = 0
 
     yield item
 

@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import logging
 import urllib.request
@@ -5,6 +6,7 @@ import urllib.request
 import pymongo
 import pprint
 from scrapy.utils.project import get_project_settings
+from passlib.hash import django_pbkdf2_sha256
 
 from items import UserItem
 from utils.text_util import get_code2name
@@ -18,54 +20,69 @@ class UserDB(object):
     self.client = pymongo.MongoClient(self.settings['MONGO_HOST'], self.settings['MONGO_PORT'])
     self.db = self.client[self.settings['MONGO_DBNAME']]
     self.users = self.db.users
-    self.users.ensure_index('user_name', unique=True)
+    self.users.ensure_index('username', unique=True)
 
   def db_insert_user(self, userItem):
     if isinstance(userItem, UserItem):
       try:
-        exist = self.users.find_one({'user_name': userItem['user_name']})
+        exist = self.users.find_one({'username': userItem['username']})
         if exist:
           return -3
+        exist_email = self.users.find_one({'email': userItem['email']})
+        if exist_email:
+          return -4
         else:
           self.users.insert_one(dict(userItem))
       except Exception as e:
         logger.warning('insert_user: %s', str(userItem), exc_info=1)
       return 1
 
-  def db_add_user(self, user_password, user_name, recent_reads=[], tags=[], stocks=[]):
+  def db_add_user(self, password, username, email, recent_reads_title=[], recent_reads_url=[], tags=[], stocks=[]):
     user = UserItem()
-    salt = 'nju'.encode('utf-8')
-    user['user_password'] = hashlib.md5(user_password.encode('utf-8') + salt).hexdigest()
-    user['user_name'] = user_name
-    user['recent_reads'] = recent_reads
+    user['password'] = django_pbkdf2_sha256.hash(password)
+    user['username'] = username
+    user['email'] = email
+    user['recent_reads_title'] = recent_reads_title
+    user['recent_reads_url'] = recent_reads_url
     user['tags'] = tags
     user['stocks'] = stocks
     return self.db_insert_user(user)
 
-  def db_delete_user(self, user_name):
+  def db_delete_user(self, username):
     """
     根据用户ID删除该用户，通过delete + insert 操作进行更新用户的密码信息
     :param self:
     :param user_id:
     :return:
     """
-    r = self.users.delete_one({'user_name': user_name})
+    r = self.users.delete_one({'username': username})
     return r.deleted_count
 
-  def db_get_user(self, user_name):
-    find_user = self.users.find_one({'user_name': user_name})
+  def db_get_user(self, username):
+    find_user = self.users.find_one({'username': username})
     return find_user if find_user else None
 
-  def db_update_user_recent_reads(self, user_name, recent_reads):
-    self.users.find_one_and_update({'user_name': user_name},
-                                   {'$set': {'recent_reads': recent_reads}})
+  def db_get_user_password(self, username):
+    find_user = self.users.find_one({'username': username})
+    if find_user:
+      return find_user['password']
+    else:
+      return None
 
-  def db_update_user_tags(self, user_name, tags):
-    self.users.find_one_and_update({'user_name': user_name},
+  def db_update_user_recent_reads_url(self, username, recent_reads_url):
+    self.users.find_one_and_update({'username': username},
+                                   {'$set': {'recent_reads_url': recent_reads_url}})
+
+  def db_update_user_recent_reads_title(self, username, recent_reads_title):
+    self.users.find_one_and_update({'username': username},
+                                   {'$set': {'recent_reads_title': recent_reads_title}})
+
+  def db_update_user_tags(self, username, tags):
+    self.users.find_one_and_update({'username': username},
                                    {'$set': {'tags': tags}})
 
-  def db_update_user_stocks(self, user_name, stocks):
-    self.users.find_one_and_update({'user_name': user_name},
+  def db_update_user_stocks(self, username, stocks):
+    self.users.find_one_and_update({'username': username},
                                    {'$set': {'stocks': stocks}})
 
 
@@ -82,7 +99,8 @@ class UserInterface(object):
     self.stocklist = self.db[self.settings['MONGO_COLLECTION_EAST_MONEY_STOCK_LIST']]
     # 一些用户数据
     self.news_list = []  # 待推荐的新闻列表
-    self.recent_reads = self.user['recent_reads']  #
+    self.recent_reads_url = self.user['recent_reads_url']  #
+    self.recent_reads_title = self.user['recent_reads_title']
     self.tags = self.user['tags']
     self.stocks = self.user['stocks']
 
@@ -93,25 +111,29 @@ class UserInterface(object):
       self.news_list.append(news)
     return self.news_list
 
-  def update_recent_reads(self, news_title):
+  def update_recent_reads(self, news_title, news_url):
     """
     这里的（局部）变量 self.recent_reads 需要与数据库中的保持一致，
     进行推荐的时候就使用 self.recent_reads 进行推荐决策
     :param news_title: str
     :return: 
     """
-    news_read = [news_title]
-    if len(self.recent_reads) < 50:
-      self.recent_reads = news_read + self.recent_reads
+    news_read_title = [news_title]
+    news_read_url = [news_url]
+    if len(self.recent_reads_title) < 50:
+      self.recent_reads_title = news_read_title + self.recent_reads_title
+      self.recent_reads_url = news_read_url + self.recent_reads_url
     else:
-      self.recent_reads = news_read + self.recent_reads[:-1]
+      self.recent_reads_title = news_read_title + self.recent_reads_title[:-1]
+      self.recent_reads_url = news_read_url + self.recent_reads_url[:-1]
     # 更新数据库
-    self.user_db.db_update_user_recent_reads(self.user['user_name'], self.recent_reads)
+    self.user_db.db_update_user_recent_reads_url(self.user['username'], self.recent_reads_url)
+    self.user_db.db_update_user_recent_reads_title(self.user['username'], self.recent_reads_title)
 
   def read_stocks(self):
     home = self.settings['SINA_JS_STOCK_REQUEST']
     stocks_info = []
-    for i, s in enumerate(self.stocks):
+    for i, s in enumerate(self.get_stocks()):
       req = urllib.request.Request(url=home + s)
       response = urllib.request.urlopen(req)
       data = response.read().decode("gbk").split(',')
@@ -131,7 +153,7 @@ class UserInterface(object):
   def add_tag(self, tag):
     self.tags.append(tag)
     self.tags = sorted(list(set(self.tags)))
-    self.user_db.db_update_user_tags(self.user['user_name'], self.tags)
+    self.user_db.db_update_user_tags(self.user['username'], self.tags)
 
   def get_tags(self):
     self.tags = sorted(list(set(self.tags)))
@@ -140,32 +162,39 @@ class UserInterface(object):
   def del_tag(self, index):
     if index <= len(self.tags):
       del self.tags[index - 1]
-      self.user_db.db_update_user_tags(self.user['user_name'], self.tags)
+      self.user_db.db_update_user_tags(self.user['username'], self.tags)
 
   def add_stock(self, code_or_name):
     stock_entity = None
+    new_stock_entity = {}
     if code_or_name.startswith('sz') or code_or_name.startswith('sh'):
-      stock_entity = self.stocklist.find_one({'stock_id': code_or_name})
-      if stock_entity is not None:
-        self.stocks.append(code_or_name)
+	    stock_entity = self.stocklist.find_one({'stock_id': code_or_name})
+	    if stock_entity is not None:
+		    new_stock_entity['stock_id'] = stock_entity['stock_id']
+		    new_stock_entity['datetime'] = datetime.datetime.now()
+		    self.stocks.append(new_stock_entity)
     else:
-      stock_entity = self.stocklist.find_one({'stock_name': code_or_name})
-      if stock_entity is not None:
-        # pprint.pprint(stock_entity)
-        self.stocks.append(stock_entity['stock_id'])
+	    stock_entity = self.stocklist.find_one({'stock_name': code_or_name})
+	    if stock_entity is not None:
+		    new_stock_entity['stock_id'] = stock_entity['stock_id']
+		    new_stock_entity['datetime'] = datetime.datetime.now()
+		    # pprint.pprint(stock_entity)
+		    self.stocks.append(new_stock_entity)
     # print(stock_entity)
-    self.stocks = sorted(list(set(self.stocks)))
-    self.user_db.db_update_user_stocks(self.user['user_name'], self.stocks)
+    self.user_db.db_update_user_stocks(self.user['username'], self.stocks)
     return stock_entity
 
   def get_stocks(self):
-    self.stocks = sorted(list(set(self.stocks)))
-    return self.stocks
+    self.stocks = sorted(self.stocks, key=lambda x: x['datetime'])
+    stocks_id_list =[]
+    for y in self.stocks:
+	    stocks_id_list.append(y['stock_id'])
+    return stocks_id_list
 
   def del_stock(self, index):
     if index <= len(self.stocks):
       del self.stocks[index - 1]
-      self.user_db.db_update_user_stocks(self.user['user_name'], self.stocks)
+      self.user_db.db_update_user_stocks(self.user['username'], self.stocks)
 
 
 if __name__ == '__main__':
@@ -182,13 +211,14 @@ if __name__ == '__main__':
     # Register
     if q1 == 0:
       u_name = input('Set your user name: ')
+      u_email = input('Set your email: ')
       u_pwd1 = input('Set password: ')
       u_pwd2 = input('Input password again: ')
       while u_pwd1 != u_pwd2:
         print("Password not consistent! Try again!")
         u_pwd1 = input('Set password: ')
         u_pwd2 = input('Input password again: ')
-      reg = user_db.db_add_user(user_password=u_pwd1, user_name=u_name)
+      reg = user_db.db_add_user(password=u_pwd1, username=u_name, email=u_email)
       if reg < 0:
         print("User name already exist, try again...")
       else:
@@ -201,8 +231,7 @@ if __name__ == '__main__':
       if password is None:
         print("You are not registered! Please sign up first!")
       else:
-        salted = u_pwd.encode('utf-8') + 'nju'.encode('utf-8')
-        if password['user_password'] == hashlib.md5(salted).hexdigest():
+        if django_pbkdf2_sha256.verify(u_pwd, password['password']):
           user_entity = password
           break
         else:
@@ -237,7 +266,7 @@ if __name__ == '__main__':
           sel = int(input("Select the news: "))
           if 0 <= sel and sel < min_limit:
             pprint.pprint(news_list[sel])
-            ui.update_recent_reads(news_list[sel]['title'])
+            ui.update_recent_reads(news_list[sel]['title'], news_list[sel]['url'])
             # user_db.db_update_user_recent_reads(user_entity['user_name'], news_list[sel]['title'])
             input("Input any key to back...")
         except ValueError as ve:

@@ -51,51 +51,56 @@ class MongoPipeline(object):
 
   def process_item(self, item, spider):
     if isinstance(item, WallStreetItem):
-      try:
-        self.wallstreet.insert_one(dict(item))
-      except Exception as e:
-        logger.warning('process_item.wallstreet: %s', str(item), exc_info=1)
-      try:
-        candidate_item = dict(item)
-        candidate_item['db_time'] = datetime.utcnow()
-        self.candidate.insert_one(candidate_item)
-      except Exception as e:
-        logger.warning('process_item.candidate: %s', str(item), exc_info=1)
+      if item['para_content_text_and_images']:
+        try:
+          self.wallstreet.insert_one(dict(item))
+        except Exception as e:
+          logger.warning('process_item.wallstreet: %s', str(item), exc_info=1)
+        try:
+          candidate_item = dict(item)
+          candidate_item['db_time'] = datetime.utcnow()
+          self.candidate.insert_one(candidate_item)
+        except Exception as e:
+          logger.warning('process_item.candidate: %s', str(item), exc_info=1)
 
     elif isinstance(item, SinaRollItem):
-      try:
-        self.sina_roll.insert_one(dict(item))
-      except Exception as e:
-        logger.warning('process_item.sina_roll: %s', str(item), exc_info=1)
-      try:
-        candidate_item = dict(item)
-        candidate_item['db_time'] = datetime.utcnow()
-        self.candidate.insert_one(candidate_item)
-      except Exception as e:
-        logger.warning('process_item.candidate: %s', str(item), exc_info=1)
+      if item['para_content_text_and_images']:
+        try:
+          self.sina_roll.insert_one(dict(item))
+        except Exception as e:
+          logger.warning('process_item.sina_roll: %s', str(item), exc_info=1)
+        try:
+          candidate_item = dict(item)
+          candidate_item['db_time'] = datetime.utcnow()
+          self.candidate.insert_one(candidate_item)
+        except Exception as e:
+          logger.warning('process_item.candidate: %s', str(item), exc_info=1)
+
     elif isinstance(item, TencentItem):
-      try:
-        self.tencent.insert_one(dict(item))
-      except Exception as e:
-        logger.warning('process_item.tencent: %s', str(item), exc_info=1)
-      try:
-        candidate_item = dict(item)
-        candidate_item['db_time'] = datetime.utcnow()
-        self.candidate.insert_one(candidate_item)
-      except Exception as e:
-        logger.warning('process_item.candidate: %s', str(item), exc_info=1)
+      if item['para_content_text_and_images']:
+        try:
+          self.tencent.insert_one(dict(item))
+        except Exception as e:
+          logger.warning('process_item.tencent: %s', str(item), exc_info=1)
+        try:
+          candidate_item = dict(item)
+          candidate_item['db_time'] = datetime.utcnow()
+          self.candidate.insert_one(candidate_item)
+        except Exception as e:
+          logger.warning('process_item.candidate: %s', str(item), exc_info=1)
 
     elif isinstance(item, HexunItem):
-      try:
-        self.hexun.insert_one(dict(item))
-      except Exception as e:
-        logger.warning('process_item.hexun: %s', str(item), exc_info=1)
-      try:
-        candidate_item = dict(item)
-        candidate_item['db_time'] = datetime.utcnow()
-        self.candidate.insert_one(candidate_item)
-      except Exception as e:
-        logger.warning('process_item.candidate: %s', str(item), exc_info=1)
+      if item['para_content_text_and_images']:
+        try:
+          self.hexun.insert_one(dict(item))
+        except Exception as e:
+          logger.warning('process_item.hexun: %s', str(item), exc_info=1)
+        try:
+          candidate_item = dict(item)
+          candidate_item['db_time'] = datetime.utcnow()
+          self.candidate.insert_one(candidate_item)
+        except Exception as e:
+          logger.warning('process_item.candidate: %s', str(item), exc_info=1)
     elif isinstance(item, EastMoneyArticleItem):  # 东方财富， 各种新闻页面
       try:
         self.east_money_article.insert(dict(item))
