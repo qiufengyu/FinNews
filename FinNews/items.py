@@ -39,6 +39,15 @@ class HexunItem(scrapy.Item):
     reads = scrapy.Field()
     para_content_text_and_images = scrapy.Field()
 
+class SinaItem(scrapy.Item):
+    url = scrapy.Field()
+    title = scrapy.Field()
+    pb_time = scrapy.Field()
+    source = scrapy.Field()
+    author = scrapy.Field()
+    reads = scrapy.Field()
+    para_content_text_and_images = scrapy.Field()
+
 class SinaRollItem(scrapy.Item):
     url = scrapy.Field()
     title = scrapy.Field()

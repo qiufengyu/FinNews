@@ -13,17 +13,17 @@ class WallStreetSpider(scrapy.Spider):
 
     def parse(self, response):
         soup = BeautifulSoup(response.body, 'lxml')
-        for news_item in soup.find_all('div', 'home-news-item'):
+        for news_item in soup.find_all('div', 'article article-item'):
             sub_url = news_item.find('a')['href']
             if sub_url.startswith('http'):
                 complete_url = sub_url
             else:
                 complete_url = response.urljoin(sub_url)
-            title = news_item.find('a', 'home-news-item__main__title').text.strip()
-            summary = news_item.find('a', 'home-news-item__main__summary').text.strip()
+            title = news_item.find('a', 'title').text.strip()
+            summary = news_item.find('a', 'content').text.strip()
             source = None
             if news_item.find('div', 'left-item'):
-                source = news_item.find('div', 'left-item').text.strip().replace(u'来源:','').strip()
+                source = news_item.find('div', 'author').text.strip().replace(u'来源:','').strip()
             yield scrapy.Request(complete_url, callback=self.parse_dir_contents, meta={
                 'title': title, 'summary': summary, 'source': source, 'sub_url': sub_url,
                 'flag': sub_url.startswith('/a')
@@ -38,9 +38,9 @@ class WallStreetSpider(scrapy.Spider):
         # 只抓取免费内容和华尔街的内容，跳转至其他平台的文章不获取
         if(response.meta['flag']):
             soup = BeautifulSoup(response.body, 'lxml')
-            pb_time = soup.find('div', 'article__heading__meta').find('span', 'meta-item__text').text.strip()
+            pb_time = soup.find('div', 'info').find('time', 'meta-item time').text.strip()
             para_content_text_and_images = []
-            contents = soup.find('div', 'node-article-content').find_all(re.compile('^[ph]'))
+            contents = soup.find('div', 'rich-text').find_all(re.compile('^[ph]'))
             for c in list(contents):
                 if c.find('img'):
                     para_content_text_and_images.append(c.find('img')['src'].strip())

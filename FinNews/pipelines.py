@@ -30,6 +30,8 @@ class MongoPipeline(object):
     self.hexun.ensure_index('url', unique=True)
     self.sina_roll = self.db[self.settings['MONGO_COLLECTION_SINA_ROLL']]
     self.sina_roll.ensure_index('url', unique=True)
+    self.sina = self.db[self.settings['MONGO_COLLECTION_SINA']]
+    self.sina.ensure_index('url', unique=True)
     self.tencent = self.db[self.settings['MONGO_COLLECTION_TENCENT']]
     self.tencent.ensure_index('url', unique=True)
     self.east_money_stock_list = self.db[self.settings['MONGO_COLLECTION_EAST_MONEY_STOCK_LIST']]
@@ -69,6 +71,19 @@ class MongoPipeline(object):
           self.sina_roll.insert_one(dict(item))
         except Exception as e:
           logger.warning('process_item.sina_roll: %s', str(item), exc_info=1)
+        try:
+          candidate_item = dict(item)
+          candidate_item['db_time'] = datetime.utcnow()
+          self.candidate.insert_one(candidate_item)
+        except Exception as e:
+          logger.warning('process_item.candidate: %s', str(item), exc_info=1)\
+
+    elif isinstance(item, SinaItem):
+      if item['para_content_text_and_images']:
+        try:
+          self.sina.insert_one(dict(item))
+        except Exception as e:
+          logger.warning('process_item.sina: %s', str(item), exc_info=1)
         try:
           candidate_item = dict(item)
           candidate_item['db_time'] = datetime.utcnow()

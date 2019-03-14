@@ -15,11 +15,12 @@ SPIDER_MODULES = ['FinNews.spiders']
 NEWSPIDER_MODULE = 'FinNews.spiders'
 
 # MongoDB settings
-MONGO_HOST = "114.212.191.119"  # 主机IP
+MONGO_HOST = "localhost"  # 主机IP
 MONGO_PORT = 27017  # 端口号
 MONGO_DBNAME = 'fin_news'
 MONGO_COLLECTION_WALLSTREET = 'wallstreet'
 MONGO_COLLECTION_HEXUN = 'hexun'
+MONGO_COLLECTION_SINA = 'sina'
 MONGO_COLLECTION_SINA_ROLL = 'sina_roll'
 MONGO_COLLECTION_TENCENT = 'tencent'
 MONGO_COLLECTION_EAST_MONEY_STOCK_LIST = 'east_money_stock_list'
@@ -34,7 +35,7 @@ MONGO_COLLECTION_CANDIDATE = 'candidate'
 SINA_JS_STOCK_REQUEST = 'http://hq.sinajs.cn/list='
 
 # Sina roll finance news
-SINA_ROLL_FINANCE_NEWS = 'http://roll.news.sina.com.cn/interface/rollnews_ch_out_interface.php?col=43&spec=&type=&ch=03&k=&offset_page=0&offset_num=0&num=200&asc=&page={}'
+SINA_ROLL_FINANCE_NEWS = 'https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=2516&k=&num=50&page={}'
 SINA_ROLL_PAGES = 5
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'myscrapy (+http://www.yourdomain.com)'
