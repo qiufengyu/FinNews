@@ -15,7 +15,7 @@ SPIDER_MODULES = ['FinNews.spiders']
 NEWSPIDER_MODULE = 'FinNews.spiders'
 
 # MongoDB settings
-MONGO_HOST = "localhost"  # 主机IP
+MONGO_HOST = "114.212.191.119"  # 主机IP
 MONGO_PORT = 27017  # 端口号
 MONGO_DBNAME = 'fin_news'
 MONGO_COLLECTION_WALLSTREET = 'wallstreet'

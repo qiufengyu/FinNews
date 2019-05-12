@@ -13,7 +13,12 @@ class UserItem(scrapy.Item):
     password = scrapy.Field()
     email = scrapy.Field()
     recent_reads_url = scrapy.Field()
+    recent_reads_objid = scrapy.Field()
     recent_reads_title = scrapy.Field()
+    likes_title = scrapy.Field()
+    likes_url = scrapy.Field()
+    likes_objid = scrapy.Field()
+    friends = scrapy.Field()
     tags = scrapy.Field()
     stocks = scrapy.Field()
 
@@ -26,6 +31,7 @@ class WallStreetItem(scrapy.Item):
     url = scrapy.Field()
     pb_time = scrapy.Field()
     reads = scrapy.Field()
+    likedby = scrapy.Field()
     # author 在这里不明确，source 指向即可
     para_content_text_and_images = scrapy.Field()
 
@@ -37,6 +43,7 @@ class HexunItem(scrapy.Item):
     source = scrapy.Field()
     author = scrapy.Field()
     reads = scrapy.Field()
+    likedby = scrapy.Field()
     para_content_text_and_images = scrapy.Field()
 
 class SinaItem(scrapy.Item):
@@ -46,6 +53,7 @@ class SinaItem(scrapy.Item):
     source = scrapy.Field()
     author = scrapy.Field()
     reads = scrapy.Field()
+    likedby = scrapy.Field()
     para_content_text_and_images = scrapy.Field()
 
 class SinaRollItem(scrapy.Item):
@@ -57,6 +65,7 @@ class SinaRollItem(scrapy.Item):
     reads = scrapy.Field()
     para_content_text_and_images = scrapy.Field()
     category = scrapy.Field()
+    likedby = scrapy.Field()
 
 class TencentItem(scrapy.Item):
     url = scrapy.Field()
@@ -65,6 +74,7 @@ class TencentItem(scrapy.Item):
     source = scrapy.Field()
     author = scrapy.Field()
     reads = scrapy.Field()
+    likedby = scrapy.Field()
     para_content_text_and_images = scrapy.Field()
     category = scrapy.Field()
 

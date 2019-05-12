@@ -50,6 +50,7 @@ class SinaSpider(scrapy.Spider):
     # print(response.url)
     item = SinaItem()
     item['reads'] = 0
+    item['likedby'] = []
     item['url'] = response.url
     item['pb_time'] = response.meta['pb_time']
     # source

@@ -33,6 +33,7 @@ class WallStreetSpider(scrapy.Spider):
     def parse_dir_contents(self, response):
         item = WallStreetItem()
         item['reads'] = 0
+        item['likedby'] = []
         if 'wallstreet' not in response.url:
             return
         # 只抓取免费内容和华尔街的内容，跳转至其他平台的文章不获取

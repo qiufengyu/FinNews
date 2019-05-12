@@ -53,7 +53,7 @@ class MongoPipeline(object):
 
   def process_item(self, item, spider):
     if isinstance(item, WallStreetItem):
-      if item['para_content_text_and_images']:
+      if 'para_content_text_and_images' in item:
         try:
           self.wallstreet.insert_one(dict(item))
         except Exception as e:
@@ -66,7 +66,7 @@ class MongoPipeline(object):
           logger.warning('process_item.candidate: %s', str(item), exc_info=1)
 
     elif isinstance(item, SinaRollItem):
-      if item['para_content_text_and_images']:
+      if 'para_content_text_and_images' in item:
         try:
           self.sina_roll.insert_one(dict(item))
         except Exception as e:
@@ -79,7 +79,7 @@ class MongoPipeline(object):
           logger.warning('process_item.candidate: %s', str(item), exc_info=1)\
 
     elif isinstance(item, SinaItem):
-      if item['para_content_text_and_images']:
+      if 'para_content_text_and_images' in item:
         try:
           self.sina.insert_one(dict(item))
         except Exception as e:
@@ -92,7 +92,7 @@ class MongoPipeline(object):
           logger.warning('process_item.candidate: %s', str(item), exc_info=1)
 
     elif isinstance(item, TencentItem):
-      if item['para_content_text_and_images']:
+      if 'para_content_text_and_images' in item:
         try:
           self.tencent.insert_one(dict(item))
         except Exception as e:
@@ -105,7 +105,7 @@ class MongoPipeline(object):
           logger.warning('process_item.candidate: %s', str(item), exc_info=1)
 
     elif isinstance(item, HexunItem):
-      if item['para_content_text_and_images']:
+      if 'para_content_text_and_images' in item:
         try:
           self.hexun.insert_one(dict(item))
         except Exception as e:

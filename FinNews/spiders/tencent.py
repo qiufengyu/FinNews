@@ -186,7 +186,7 @@ class TencentSpider(scrapy.Spider):
     item['para_content_text_and_images'] = para_content_text_and_images
     item['author'] = author
     item['reads'] = 0
-
+    item['likedby'] = []
     yield item
 
   def parse_dir_contents(self, response):
@@ -279,7 +279,7 @@ class TencentSpider(scrapy.Spider):
     item['para_content_text_and_images'] = para_content_text_and_images
     item['author'] = author
     item['reads'] = 0
-
+    item['likedby'] = []
     yield item
 
   def parse_gallery_picture(self, url):

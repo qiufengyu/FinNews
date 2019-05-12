@@ -16,11 +16,13 @@ if __name__ == '__main__':
   settings = get_project_settings()
   process = CrawlerProcess(get_project_settings())
   # process.crawl(SinaSpider)
-  process.crawl(WallStreetSpider)
+  # process.crawl(WallStreetSpider)
+  process.crawl(TencentSpider)
+  # 下面的似乎都有些问题了...
   # process.crawl(HexunSpider)
   # process.crawl(EastMoneySpider)
   # process.crawl(SinaRollSpider(pages=10))
-  # process.crawl(TencentSpider)
+
 
   process.start()
   # w = WordVec()
