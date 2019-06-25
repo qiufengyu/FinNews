@@ -28,6 +28,4 @@
 
 ### 贡献者
 
-戴新宇，薛洪见，邱丰羽
-
 Email: daixinyu@nju.edu.cn
